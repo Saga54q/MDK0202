@@ -15,12 +15,14 @@ rem =====================================================================
 setlocal
 
 rem --- Папка проекта в рабочем репозитории (источник) -----------------
-set "SOURCE=C:\Projects\MDK0202\lab1_quote_generator"
+rem Локальный клон MDK0202 (ветка arena/01a10ac9-mdk0202), получить один раз:
+rem   git clone -b arena/01a10ac9-mdk0202 https://github.com/Saga54q/MDK0202.git A:\Projects\MDK0202
+set "SOURCE=A:\Projects\MDK0202\lab1_quote_generator"
 
 rem --- Папка клона отдельного репозитория проекта (приёмник) ----------
 rem Её нужно получить один раз командой:
-rem   git clone https://github.com/Saga54q/lab1_quote_generator.git "C:\Projects\lab1_quote_generator"
-set "DEST=C:\Projects\lab1_quote_generator"
+rem   git clone https://github.com/Saga54q/lab1_quote_generator.git A:\Projects\lab1_quote_generator
+set "DEST=A:\Projects\lab1_quote_generator"
 
 rem =====================================================================
 

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Генератор случайных цитат</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1 id="app-title" class="app-title">Генератор случайных цитат</h1>
+    <p class="app-subtitle">Учебный проект по МДК 02.02 «Инструментальные средства разработки ПО»</p>
+  </header>
+
+  <main class="layout">
+    <!-- Карточка входа: проверка авторизации и статуса 401 -->
+    <section id="login-card" class="card login-card">
+      <h2 class="card-title">Вход в приложение</h2>
+      <form id="login-form" class="form" novalidate>
+        <label class="field-label" for="username">Имя пользователя</label>
+        <input id="username" class="field" type="text"
+               placeholder="Например: Амир" autocomplete="username">
+
+        <label class="field-label" for="password">Код доступа</label>
+        <input id="password" class="field" type="password"
+               placeholder="Введите код доступа" autocomplete="current-password">
+
+        <button id="login-button" class="button button-primary" type="submit">
+          Войти
+        </button>
+        <p id="login-message" class="message" role="status"></p>
+      </form>
+      <p class="hint">Демонстрационный код доступа: quote2026</p>
+    </section>
+
+    <!-- Карточка цитаты: ключевой элемент интерфейса -->
+    <section id="quote-card" class="card quote-card">
+      <h2 class="card-title">Случайная цитата</h2>
+      <form id="quote-form" class="form" novalidate>
+        <label class="field-label" for="category">Категория</label>
+        <select id="category" class="field field-select" disabled>
+          <option value="">Все категории</option>
+        </select>
+
+        <button id="quote-button" class="button button-accent" type="submit" disabled>
+          Получить цитату
+        </button>
+      </form>
+
+      <blockquote id="quote-text" class="quote-text">
+        Выполните вход, чтобы получить цитату.
+      </blockquote>
+      <p id="quote-category" class="quote-category"></p>
+      <p id="quote-message" class="message" role="status"></p>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <p class="footer-text">MDK0202 · Лабораторная работа № 6</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

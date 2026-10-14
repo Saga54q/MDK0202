@@ -6,9 +6,12 @@
 """
 
 import json
+import logging
 from pathlib import Path
 
 DEFAULT_CATEGORY = "Без категории"
+
+logger = logging.getLogger(__name__)
 
 
 class QuoteStorageError(Exception):
@@ -42,22 +45,40 @@ class QuoteStorage:
         """Проверить структуру данных и вернуть список корректных цитат."""
         if not isinstance(data, list):
             raise QuoteStorageError("Ожидался список цитат в формате JSON: [...]")
+
         quotes = [quote for quote in map(self._normalize, data) if quote]
+
+        logger.info("Загружено цитат: %d из %d записей", len(quotes), len(data))
         if not quotes:
             raise QuoteStorageError("В файле не найдено ни одной корректной цитаты")
         return quotes
 
-    @staticmethod
-    def _normalize(item):
+    @classmethod
+    def _normalize(cls, item):
         """Привести запись к виду {"text": ..., "category": ...}.
 
         Записи без текста и элементы, не являющиеся словарями,
         пропускаются — метод возвращает None.
+
+        Поля проверяются по типу: значение null или число не должно
+        превращаться в строку «None» или «42» (ошибка, найденная
+        при отладке в лабораторной работе № 5).
         """
         if not isinstance(item, dict):
+            logger.warning("Пропущена запись, не являющаяся объектом: %r", item)
             return None
-        text = str(item.get("text", "")).strip()
-        if not text:
+
+        raw_text = item.get("text")
+        if not isinstance(raw_text, str) or not raw_text.strip():
+            logger.warning("Пропущена запись без текста: %r", item)
             return None
-        category = str(item.get("category", DEFAULT_CATEGORY)).strip()
-        return {"text": text, "category": category or DEFAULT_CATEGORY}
+
+        raw_category = item.get("category")
+        if not isinstance(raw_category, str) or not raw_category.strip():
+            logger.warning(
+                "Категория не указана или не является строкой, "
+                "использовано значение по умолчанию: %r", item
+            )
+            raw_category = DEFAULT_CATEGORY
+
+        return {"text": raw_text.strip(), "category": raw_category.strip()}

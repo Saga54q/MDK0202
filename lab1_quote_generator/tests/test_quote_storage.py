@@ -1,4 +1,16 @@
-"""Модульные тесты Модуля № 1 (хранилище цитат)."""
+"""Модульные тесты Модуля № 1 (хранилище цитат).
+
+Тесты разделены на группы:
+* позитивные сценарии — модуль получает корректные данные и возвращает
+  правильный результат;
+* негативные сценарии — модуль получает заведомо неверные данные и
+  корректно обрабатывает ошибку (исключение или пропуск записи),
+  но не падает;
+* регрессионные тесты — проверяют ошибку, найденную при отладке
+  в лабораторной работе № 5: значения null превращались в строку «None».
+
+Запуск: python -m pytest tests/test_quote_storage.py -v
+"""
 
 import json
 
@@ -24,6 +36,8 @@ def make_file(tmp_path):
     return create
 
 
+# ------------------------------------------------------- позитивные сценарии
+
 def test_load_returns_all_quotes(make_file):
     """Корректный файл: все цитаты загружаются с текстом и категорией."""
     path = make_file([
@@ -47,6 +61,18 @@ def test_category_defaults_to_base_value(make_file):
     assert quotes[0]["category"] == DEFAULT_CATEGORY
 
 
+def test_text_is_trimmed(make_file):
+    """Лишние пробелы вокруг текста и категории удаляются."""
+    path = make_file([{"text": "  Цитата с пробелами  ", "category": " Тест "}])
+
+    quotes = QuoteStorage(path).load()
+
+    assert quotes[0]["text"] == "Цитата с пробелами"
+    assert quotes[0]["category"] == "Тест"
+
+
+# ------------------------------------------------------- негативные сценарии
+
 def test_records_without_text_are_skipped(make_file):
     """Записи без текста и элементы не-словари пропускаются."""
     path = make_file([
@@ -61,16 +87,6 @@ def test_records_without_text_are_skipped(make_file):
 
     assert len(quotes) == 1
     assert quotes[0]["text"] == "Правильная цитата"
-
-
-def test_text_is_trimmed(make_file):
-    """Лишние пробелы вокруг текста и категории удаляются."""
-    path = make_file([{"text": "  Цитата с пробелами  ", "category": " Тест "}])
-
-    quotes = QuoteStorage(path).load()
-
-    assert quotes[0]["text"] == "Цитата с пробелами"
-    assert quotes[0]["category"] == "Тест"
 
 
 def test_missing_file_raises_error(tmp_path):
@@ -101,3 +117,57 @@ def test_empty_result_raises_error(make_file):
 
     with pytest.raises(QuoteStorageError, match="ни одной корректной цитаты"):
         QuoteStorage(path).load()
+
+
+# --------------------------------------- регрессионные тесты (ошибка отладки)
+
+def test_null_text_is_not_turned_into_none_string(make_file):
+    """Ошибка отладки: text=null попадал в результат как строка «None»."""
+    path = make_file([
+        {"text": None, "category": "Учёба"},
+        {"text": "Правильная цитата", "category": "Учёба"},
+    ])
+
+    quotes = QuoteStorage(path).load()
+
+    assert len(quotes) == 1
+    assert quotes[0]["text"] == "Правильная цитата"
+
+
+def test_null_category_is_replaced_by_default(make_file):
+    """Ошибка отладки: category=null превращалась в строку «None»."""
+    path = make_file([{"text": "Цитата", "category": None}])
+
+    quotes = QuoteStorage(path).load()
+
+    assert quotes[0]["category"] == DEFAULT_CATEGORY
+
+
+def test_non_string_text_is_skipped(make_file):
+    """Текст должен быть строкой: числа и другие типы пропускаются."""
+    path = make_file([
+        {"text": 42, "category": "Тест"},
+        {"text": "Строковая цитата", "category": "Тест"},
+    ])
+
+    quotes = QuoteStorage(path).load()
+
+    assert len(quotes) == 1
+    assert quotes[0]["text"] == "Строковая цитата"
+
+
+def test_result_never_contains_none_string(make_file):
+    """Общая проверка: в результате нет значений «None»."""
+    path = make_file([
+        {"text": None, "category": None},
+        {"text": "Нормальная цитата", "category": None},
+        {"text": 42, "category": "Тест"},
+        {"text": "   ", "category": "Тест"},
+    ])
+
+    quotes = QuoteStorage(path).load()
+
+    assert len(quotes) == 1
+    for quote in quotes:
+        for value in quote.values():
+            assert value != "None"
